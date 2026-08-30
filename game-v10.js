@@ -11,10 +11,10 @@ const imageMap = {
     "Donut": "Food/Donut.png",
     "Jelly": "Food/Jelly.png",
     "Grape": "Food/Grape.png",
-    "IceCream": "Food/ice cream.png",       // Resolves space in filename
+    "IceCream": "Food/Ice Cream.png",       // Resolves space in filename
     "Mango": "Food/Mango.png",
     "Orange": "Food/Orange.png",
-    "Watermelon": "Food/watermelone.png"    // Resolves spelling of watermelone.png
+    "Watermelon": "Food/Watermelone.png"    // Resolves spelling of watermelone.png
 };
 
 // Timer variables
