@@ -1,4 +1,4 @@
-/* style-v10.css */
+/* style-v12.css */
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Sarina&display=swap');
 
 /* UNIVERSAL RESET: Clears default browser margins/paddings to fix the left white gap! */
@@ -209,7 +209,7 @@ html, body {
     /* Layered rich wood panels */
     background: linear-gradient(to bottom, 
         #a05c31 0px, 
-        #8b4c24 14px,
+        #8b4c24 14px, 
         #6f3713 14px, 
         #572809 100%
     );
@@ -353,10 +353,10 @@ html, body {
 #Donut { background-image: url(Food/Donut.png); }
 #Jelly { background-image: url(Food/Jelly.png); }
 #Grape { background-image: url(Food/Grape.png); }
-#IceCream { background-image: url(Food/IceCream.png); }
+#IceCream { background-image: url(Food/Ice\ Cream.png); }
 #Mango { background-image: url(Food/Mango.png); }
 #Orange { background-image: url(Food/Orange.png); }
-#Watermelon { background-image: url(Food/Watermelon.png); }
+#Watermelon { background-image: url(Food/Watermelone.png); }
 
 
 /* --- POPUP OVERLAY INTERFACES --- */

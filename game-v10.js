@@ -1,20 +1,20 @@
-/* game-v8.js */
+/* game-v10.js */
 
 // Food items matching your HTML button IDs exactly
 const food = ["Juice", "Apple", "Donut", "Jelly", "Grape", "IceCream", "Mango", "Orange", "Watermelon"];
 let ChoosenFood = "";
 
-// Dynamic Image mapping that resolves correct folder paths, spaces, and spelling differences!
+// Dynamic Image mapping that resolves spaces and spelling differences in your files
 const imageMap = {
     "Juice": "Food/Juice.png",
     "Apple": "Food/Apple.png",
     "Donut": "Food/Donut.png",
     "Jelly": "Food/Jelly.png",
     "Grape": "Food/Grape.png",
-    "IceCream": "Food/IceCream.png",       // Resolves space in filename
+    "IceCream": "Food/ice cream.png",       // Resolves space in filename
     "Mango": "Food/Mango.png",
     "Orange": "Food/Orange.png",
-    "Watermelon": "Food/Watermelon.png"    // Resolves spelling of watermelone.png
+    "Watermelon": "Food/watermelone.png"    // Resolves spelling of watermelone.png
 };
 
 // Timer variables
@@ -43,13 +43,104 @@ let catFrame = 0;
 let catAnimInterval = null;
 const frameCounts = { "Idle": 8, "Happy": 8, "Jamp": 8, "Pointing": 8 };
 
+// --- BULLETPROOF CASE-SENSITIVITY AUTO-RESOLVER FOR GITHUB PAGES ---
+// Caches the successful naming casing found on startup to prevent future 404s
+const resolvedCasing = {
+    "Idle": "Cat/Idle/Idle_{frame}.png",
+    "Happy": "Cat/Happy/Happy_{frame}.png",
+    "Jamp": "Cat/Jamp/Jamp_{frame}.png",
+    "Pointing": "Cat/Pointing/Pointing_{frame}.png"
+};
+
+// Test-loads paths with different cases to find the one working on the server
+function resolveAnimationPaths(callback) {
+    const states = ["Idle", "Happy", "Jamp", "Pointing"];
+    let resolvedCount = 0;
+
+    states.forEach(state => {
+        const variations = [
+            `Cat/${state}/${state}_0.png`,
+            `Cat/${state}/${state}_0.PNG`,
+            `Cat/${state.toUpperCase()}/${state.toUpperCase()}_0.png`,
+            `Cat/${state.toUpperCase()}/${state.toUpperCase()}_0.PNG`,
+            `Cat/${state.toLowerCase()}/${state.toLowerCase()}_0.png`,
+            `Cat/${state.toLowerCase()}/${state.toLowerCase()}_0.PNG`,
+            `Cat/${state}/${state.toLowerCase()}_0.png`,
+            `Cat/${state}/${state.toLowerCase()}_0.PNG`
+        ];
+
+        let found = false;
+
+        function testVariation(index) {
+            if (index >= variations.length) {
+                // If all fails, default to standard path
+                resolvedCasing[state] = `Cat/${state}/${state}_{frame}.png`;
+                checkAllResolved();
+                return;
+            }
+
+            const img = new Image();
+            img.onload = function() {
+                resolvedCasing[state] = variations[index].replace("_0.", "_{frame}.");
+                console.log(`Resolved casing for animation [${state}]:`, resolvedCasing[state]);
+                checkAllResolved();
+            };
+            img.onerror = function() {
+                testVariation(index + 1);
+            };
+            img.src = variations[index];
+        }
+
+        testVariation(0);
+    });
+
+    function checkAllResolved() {
+        resolvedCount++;
+        if (resolvedCount === states.length) {
+            callback();
+        }
+    }
+}
+
+// Pre-test food image paths to handle .png vs .PNG or lowercase extensions
+function getFoodImagePath(foodName, callback) {
+    const defaultPath = imageMap[foodName] || `Food/${foodName}.png`;
+    const variations = [
+        defaultPath,
+        defaultPath.replace(".png", ".PNG"),
+        defaultPath.toLowerCase(),
+        defaultPath.toLowerCase().replace(".png", ".PNG")
+    ];
+
+    let index = 0;
+    function testNext() {
+        if (index >= variations.length) {
+            callback(defaultPath);
+            return;
+        }
+        const tempImg = new Image();
+        tempImg.onload = function() {
+            callback(variations[index]);
+        };
+        tempImg.onerror = function() {
+            index++;
+            testNext();
+        };
+        tempImg.src = variations[index];
+    }
+    testNext();
+}
+
 window.onload = function() {
     // Retrieve persistent high score
     highScore = parseInt(localStorage.getItem("julia_high_score")) || 0;
     UpdateHighScoreDisplay();
 
-    // Start background cat animation
-    InitCatAnimation();
+    // Dynamically detect server file casing to fix GitHub Pages bugs
+    resolveAnimationPaths(function() {
+        console.log("All animation paths resolved successfully!");
+        InitCatAnimation();
+    });
 
     // Set up Start popup interface handler
     const startBtn = document.getElementById("StartBtn");
@@ -112,22 +203,6 @@ function StartGame() {
 
 // Cat Sprite Animation Core Engine
 function InitCatAnimation() {
-    const catImg = document.getElementById("CatCharacter");
-    if (!catImg) return;
-
-    // Safety fallback: prevents broken images if frames differ
-    catImg.onerror = function() {
-        if (catFrame > 0) {
-            frameCounts[currentCatState] = catFrame;
-            catFrame = 0;
-            if (currentCatState !== "Idle") {
-                setCatState("Idle");
-            } else {
-                updateCatFrame();
-            }
-        }
-    };
-
     setCatState("Idle");
     startCatLoop();
 }
@@ -141,7 +216,8 @@ function setCatState(state) {
 function updateCatFrame() {
     const catImg = document.getElementById("CatCharacter");
     if (!catImg) return;
-    catImg.src = `Cat/${currentCatState}/${currentCatState}_${catFrame}.png`;
+    const resolvedPath = resolvedCasing[currentCatState].replace("{frame}", catFrame);
+    catImg.src = resolvedPath;
 }
 
 function startCatLoop() {
@@ -175,24 +251,27 @@ function NewOrder() {
     ChoosenFood = food[num];
 
     const choiceImg = document.getElementById("CustomerChoice");
-    if (choiceImg && imageMap[ChoosenFood]) {
-        choiceImg.src = imageMap[ChoosenFood];
+    if (choiceImg) {
+        // Resolve path to handle file spelling differences safely
+        getFoodImagePath(ChoosenFood, function(workingPath) {
+            choiceImg.src = workingPath;
 
-        // --- Waddle Dee Café Style Reveal Transition ---
-        // Animation scales dynamically to exactly 2/3 of current time
-        const revealDurationMs = Math.round((currentDuration * 2) / 3);
-        choiceImg.style.setProperty('--reveal-duration', `${revealDurationMs}ms`);
+            // --- Waddle Dee Café Style Reveal Transition ---
+            // Animation scales dynamically to exactly 2/3 of current time
+            const revealDurationMs = Math.round((currentDuration * 2) / 3);
+            choiceImg.style.setProperty('--reveal-duration', `${revealDurationMs}ms`);
 
-        // Reset class animations
-        const revealClasses = ["reveal-unblur", "reveal-slide-top", "reveal-slide-bottom", "reveal-silhouette"];
-        revealClasses.forEach(cls => choiceImg.classList.remove(cls));
+            // Reset class animations
+            const revealClasses = ["reveal-unblur", "reveal-slide-top", "reveal-slide-bottom", "reveal-silhouette"];
+            revealClasses.forEach(cls => choiceImg.classList.remove(cls));
 
-        // Reflow browser paint
-        void choiceImg.offsetWidth;
+            // Reflow browser paint
+            void choiceImg.offsetWidth;
 
-        // Choose random visual reveal pattern
-        const randomTransition = revealClasses[Math.floor(Math.random() * revealClasses.length)];
-        choiceImg.classList.add(randomTransition);
+            // Choose random visual reveal pattern
+            const randomTransition = revealClasses[Math.floor(Math.random() * revealClasses.length)];
+            choiceImg.classList.add(randomTransition);
+        });
     }
 
     setCatState("Pointing"); // Cat points to declare order
