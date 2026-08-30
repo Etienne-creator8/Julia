@@ -14,7 +14,7 @@ const imageMap = {
     "IceCream": "Food/IceCream.png",       // Resolves space in filename
     "Mango": "Food/Mango.png",
     "Orange": "Food/Orange.png",
-    "Watermelon": "Food/Watermelone.png"    // Resolves spelling of watermelone.png
+    "Watermelon": "Food/Watermelon.png"    // Resolves spelling of watermelone.png
 };
 
 // Timer variables
