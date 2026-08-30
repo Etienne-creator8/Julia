@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Julia's Bistro - Cat Challenge</title>
+        <meta charset='utf-8'/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- Links your upgraded v9 stylesheet -->
+        <link rel="stylesheet" href="style.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Sarina&display=swap" rel="stylesheet">
+        <script type="text/javascript" src="game.js" defer></script>
+    </head>
+    <body>
+        
+        <!-- START GAME POP-UP OVERLAY -->
+        <div id="StartScreen">
+            <div class="start-box">
+                <h2>Julia's Bistrot</h2>
+                <p>Welcome! Help our cute customer cat prepare their favorite orders before the timer runs out!</p>
+                <button id="StartBtn">Start Game</button>
+            </div>
+        </div>
+
+        <!-- FINAL SCOREBOARD POP-UP OVERLAY -->
+        <div id="EndScreen" style="display: none;">
+            <div class="end-box">
+                <h2>Bistrot Closed!</h2>
+                <div class="score-summary">
+                    <div class="score-title">Final Score</div>
+                    <div id="FinalScoreVal">0</div>
+                    <div id="RecordLabel" class="high-score-label">High Score: 0</div>
+                </div>
+                <button id="PlayAgainBtn">Play Again</button>
+            </div>
+        </div>
+
+        <!-- MAIN GAMEPLAY CANVAS -->
+        <div class="game-wrapper">
+            
+            <!-- Dynamic hanging chalkboard score display -->
+            <div id="ScoreCard">
+                <span class="label">SCORE</span>
+                <span id="ScoreVal">0</span>
+            </div>
+
+            <h1 id="GameTitle">Julia's Bistrot</h1>
+
+            <div id="Customer">
+                <!-- Grounded bigger cat character (half-hidden waist) -->
+                <img id="CatCharacter" src="Cat/Idle/Idle_0.png" alt="Customer Cat">
+
+                <!-- Reheightened customer order card display -->
+                <img id="CustomerChoice" src="Food/Apple.png" alt="Customer choice"/>
+            </div>
+
+            <!-- Action panel: Bar counter -->
+            <div id="ActionContainer">
+                <p id="Result">Prepare the order!</p>
+                
+                <!-- Timer bar containing the nested hearts capsule overlay in the red zone -->
+                <div id="TimerBar">
+                    <div id="Hearts">❤❤❤</div>
+                    <div id="FillBar"></div>
+                </div>
+
+                <div id="ButtonsContainer">
+                    <button id="Juice"><span>Juice</span></button>
+                    <button id="Apple"><span>Apple</span></button>
+                    <button id="Donut"><span>Donut</span></button>
+                    <button id="Jelly"><span>Jelly</span></button>
+                    <button id="Grape"><span>Grape</span></button>
+                    <button id="IceCream"><span>Ice Cream</span></button>
+                    <button id="Mango"><span>Mango</span></button>
+                    <button id="Orange"><span>Orange</span></button>
+                    <button id="Watermelon"><span>Watermelon</span></button>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
