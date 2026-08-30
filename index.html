@@ -1,44 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
     <head>
         <title>Julia's Bistro - Cat Challenge</title>
         <meta charset='utf-8'/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <!-- Links your upgraded v9 stylesheet -->
-        <link rel="stylesheet" href="style.css">
+        <!-- Liaison vers ta feuille de style V11 corrigée -->
+        <link rel="stylesheet" href="style-v11.css">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Sarina&display=swap" rel="stylesheet">
-        <script type="text/javascript" src="game.js" defer></script>
+        <!-- Liaison vers ton script V9 optimisé -->
+        <script type="text/javascript" src="game-v9.js" defer></script>
     </head>
     <body>
         
-        <!-- START GAME POP-UP OVERLAY -->
+        <!-- ÉCRAN D'ACCUEIL -->
         <div id="StartScreen">
             <div class="start-box">
-                <h2>Julia's Bistrot</h2>
-                <p>Welcome! Help our cute customer cat prepare their favorite orders before the timer runs out!</p>
-                <button id="StartBtn">Start Game</button>
+                <h2>Julia's Bistrot 🐾</h2>
+                <p>Bienvenue ! Aide notre petit chat à préparer ses commandes favorites avant la fin du temps imparti !</p>
+                <button id="StartBtn">Commencer</button>
             </div>
         </div>
 
-        <!-- FINAL SCOREBOARD POP-UP OVERLAY -->
+        <!-- TABLEAU DES SCORES FINAL (GAME OVER) -->
         <div id="EndScreen" style="display: none;">
             <div class="end-box">
-                <h2>Bistrot Closed!</h2>
+                <h2>Bistrot Fermé ! 🐾</h2>
                 <div class="score-summary">
-                    <div class="score-title">Final Score</div>
+                    <div class="score-title">Score Final</div>
                     <div id="FinalScoreVal">0</div>
-                    <div id="RecordLabel" class="high-score-label">High Score: 0</div>
+                    <div id="RecordLabel" class="high-score-label">Meilleur Score : 0</div>
                 </div>
-                <button id="PlayAgainBtn">Play Again</button>
+                <button id="PlayAgainBtn">Rejouer</button>
             </div>
         </div>
 
-        <!-- MAIN GAMEPLAY CANVAS -->
+        <!-- ZONE DE JEU -->
         <div class="game-wrapper">
             
-            <!-- Dynamic hanging chalkboard score display -->
+            <!-- Ardoise de score suspendue -->
             <div id="ScoreCard">
                 <span class="label">SCORE</span>
                 <span id="ScoreVal">0</span>
@@ -47,23 +48,24 @@
             <h1 id="GameTitle">Julia's Bistrot</h1>
 
             <div id="Customer">
-                <!-- Grounded bigger cat character (half-hidden waist) -->
+                <!-- Chat géant ancré (bas du corps masqué par le comptoir) -->
                 <img id="CatCharacter" src="Cat/Idle/Idle_0.png" alt="Customer Cat">
 
-                <!-- Reheightened customer order card display -->
+                <!-- Bulle de commande cartoon surélevée -->
                 <img id="CustomerChoice" src="Food/Apple.png" alt="Customer choice"/>
             </div>
 
-            <!-- Action panel: Bar counter -->
+            <!-- Comptoir en bois -->
             <div id="ActionContainer">
-                <p id="Result">Prepare the order!</p>
+                <p id="Result">Préparez la commande !</p>
                 
-                <!-- Timer bar containing the nested hearts capsule overlay in the red zone -->
+                <!-- Miniteur avec capsule de vies intégrée -->
                 <div id="TimerBar">
                     <div id="Hearts">❤❤❤</div>
                     <div id="FillBar"></div>
                 </div>
 
+                <!-- Grille d'ingrédients -->
                 <div id="ButtonsContainer">
                     <button id="Juice"><span>Juice</span></button>
                     <button id="Apple"><span>Apple</span></button>

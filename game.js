@@ -1,22 +1,37 @@
-// List of available food items
+/* game-v9.js */
+
+// Food items matching your HTML button IDs exactly
 const food = ["Juice", "Apple", "Donut", "Jelly", "Grape", "IceCream", "Mango", "Orange", "Watermelon"];
 let ChoosenFood = "";
+
+// Dynamic Image mapping that resolves spaces and spelling differences in your files
+const imageMap = {
+    "Juice": "Food/Juice.png",
+    "Apple": "Food/Apple.png",
+    "Donut": "Food/Donut.png",
+    "Jelly": "Food/Jelly.png",
+    "Grape": "Food/Grape.png",
+    "IceCream": "Food/ice cream.png",       // Resolves space in filename
+    "Mango": "Food/Mango.png",
+    "Orange": "Food/Orange.png",
+    "Watermelon": "Food/watermelone.png"    // Resolves spelling of watermelone.png
+};
 
 // Timer variables
 let timerInterval;
 let timeLeft = 100;
-const baseDuration = 6000; // Starting duration of the round (6 seconds)
-let currentDuration = 6000; // Will decrease dynamically as player succeeds
-const timeStep = 50; // High resolution tick frequency for super-smooth progress depletion
+const baseDuration = 6000; // Base round duration (6 seconds)
+let currentDuration = 6000;
+const timeStep = 50; // Smooth tick interval
 
 // Player life system
 let CurrentLife = 3;
 const MaxLife = 3;
 
-// Score & Scaling systems
+// Score and Stats
 let currentScore = 0;
 let highScore = 0;
-let ordersServed = 0; // Tracks successful orders in the current run for scaling difficulty
+let ordersServed = 0; // Number of orders served (used to ramp difficulty!)
 
 // Game state flags
 let canClick = false;
@@ -28,34 +43,120 @@ let catFrame = 0;
 let catAnimInterval = null;
 const frameCounts = { "Idle": 8, "Happy": 8, "Jamp": 8, "Pointing": 8 };
 
+// --- BULLETPROOF CASE-SENSITIVITY AUTO-RESOLVER FOR GITHUB PAGES ---
+// Caches the successful naming casing found on startup to prevent future 404s
+const resolvedCasing = {
+    "Idle": "Cat/Idle/Idle_{frame}.png",
+    "Happy": "Cat/Happy/Happy_{frame}.png",
+    "Jamp": "Cat/Jamp/Jamp_{frame}.png",
+    "Pointing": "Cat/Pointing/Pointing_{frame}.png"
+};
+
+// Test-loads paths with different cases to find the one working on the server
+function resolveAnimationPaths(callback) {
+    const states = ["Idle", "Happy", "Jamp", "Pointing"];
+    let resolvedCount = 0;
+
+    states.forEach(state => {
+        const variations = [
+            `Cat/${state}/${state}_0.png`,
+            `Cat/${state}/${state}_0.PNG`,
+            `Cat/${state.toUpperCase()}/${state.toUpperCase()}_0.png`,
+            `Cat/${state.toUpperCase()}/${state.toUpperCase()}_0.PNG`,
+            `Cat/${state.toLowerCase()}/${state.toLowerCase()}_0.png`,
+            `Cat/${state.toLowerCase()}/${state.toLowerCase()}_0.PNG`,
+            `Cat/${state}/${state.toLowerCase()}_0.png`,
+            `Cat/${state}/${state.toLowerCase()}_0.PNG`
+        ];
+
+        let found = false;
+
+        function testVariation(index) {
+            if (index >= variations.length) {
+                // If all fails, default to standard path
+                resolvedCasing[state] = `Cat/${state}/${state}_{frame}.png`;
+                checkAllResolved();
+                return;
+            }
+
+            const img = new Image();
+            img.onload = function() {
+                resolvedCasing[state] = variations[index].replace("_0.", "_{frame}.");
+                console.log(`Resolved casing for animation [${state}]:`, resolvedCasing[state]);
+                checkAllResolved();
+            };
+            img.onerror = function() {
+                testVariation(index + 1);
+            };
+            img.src = variations[index];
+        }
+
+        testVariation(0);
+    });
+
+    function checkAllResolved() {
+        resolvedCount++;
+        if (resolvedCount === states.length) {
+            callback();
+        }
+    }
+}
+
+// Pre-test food image paths to handle .png vs .PNG or lowercase extensions
+function getFoodImagePath(foodName, callback) {
+    const defaultPath = imageMap[foodName] || `Food/${foodName}.png`;
+    const variations = [
+        defaultPath,
+        defaultPath.replace(".png", ".PNG"),
+        defaultPath.toLowerCase(),
+        defaultPath.toLowerCase().replace(".png", ".PNG")
+    ];
+
+    let index = 0;
+    function testNext() {
+        if (index >= variations.length) {
+            callback(defaultPath);
+            return;
+        }
+        const tempImg = new Image();
+        tempImg.onload = function() {
+            callback(variations[index]);
+        };
+        tempImg.onerror = function() {
+            index++;
+            testNext();
+        };
+        tempImg.src = variations[index];
+    }
+    testNext();
+}
+
 window.onload = function() {
-    // Retrieve high score from LocalStorage
+    // Retrieve persistent high score
     highScore = parseInt(localStorage.getItem("julia_high_score")) || 0;
     UpdateHighScoreDisplay();
 
-    // Initialize cat animation system right away
-    InitCatAnimation();
+    // Dynamically detect server file casing to fix GitHub Pages bugs
+    resolveAnimationPaths(function() {
+        console.log("All animation paths resolved successfully!");
+        InitCatAnimation();
+    });
 
-    // Link Start pop-up interface buttons
+    // Set up Start popup interface handler
     const startBtn = document.getElementById("StartBtn");
     const startScreen = document.getElementById("StartScreen");
 
     if (startBtn && startScreen) {
         startBtn.addEventListener("click", function() {
-            startScreen.style.display = "none"; // Hide start menu pop-up
+            startScreen.style.display = "none"; // Dismiss popup
             StartGame();
         });
     } else {
-        // Safe fallback if StartScreen elements are not in HTML
+        // Fallback if elements aren't present
         StartGame();
     }
 
-    // Restart buttons (both Game Over and standard)
-    const restartBtn = document.getElementById("RestartBtn");
-    if (restartBtn) {
-        restartBtn.addEventListener("click", StartGame);
-    }
-
+    // Play again button handler on end screen
     const playAgainBtn = document.getElementById("PlayAgainBtn");
     if (playAgainBtn) {
         playAgainBtn.addEventListener("click", function() {
@@ -65,7 +166,7 @@ window.onload = function() {
         });
     }
 
-    // Bind click events to food ingredient buttons
+    // Attach click listeners to ingredient buttons
     food.forEach(function(item) {
         const btn = document.getElementById(item);
         if (btn) {
@@ -74,7 +175,7 @@ window.onload = function() {
     });
 };
 
-// Starts the game loop
+// Initializes a fresh game session
 function StartGame() {
     CurrentLife = MaxLife;
     currentScore = 0;
@@ -82,14 +183,13 @@ function StartGame() {
     currentDuration = baseDuration;
     gameActive = true;
     
-    // Reset Score Display
     UpdateScoreDisplay();
     UpdateHeartsDisplay();
     
     const resultEl = document.getElementById("Result");
     if (resultEl) {
         resultEl.innerHTML = "Préparez la commande !";
-        resultEl.style.color = "#f7d070"; // Cozy yellow glow chalk color
+        resultEl.style.color = "#f7d070"; // Chalkboard yellow
     }
 
     const endScreen = document.getElementById("EndScreen");
@@ -97,29 +197,12 @@ function StartGame() {
         endScreen.style.display = "none";
     }
 
-    setCatState("Jamp"); // Excited jump entry animation
+    setCatState("Jamp"); // Happy entry animation
     NewOrder();
 }
 
-// Cat animation core engine
+// Cat Sprite Animation Core Engine
 function InitCatAnimation() {
-    const catImg = document.getElementById("CatCharacter");
-    if (!catImg) return;
-
-    // Error safety filter: self-corrects frame counts if directory folders differ
-    catImg.onerror = function() {
-        console.log(`Frame ${catFrame} not found for state \"${currentCatState}\". Adjusting frame limit.`);
-        if (catFrame > 0) {
-            frameCounts[currentCatState] = catFrame; // Cap limits dynamically
-            catFrame = 0;
-            if (currentCatState !== "Idle/") {
-                setCatState("Idle/");
-            } else {
-                updateCatFrame();
-            }
-        }
-    };
-
     setCatState("Idle");
     startCatLoop();
 }
@@ -133,7 +216,8 @@ function setCatState(state) {
 function updateCatFrame() {
     const catImg = document.getElementById("CatCharacter");
     if (!catImg) return;
-    catImg.src = `Cat/${currentCatState}/${currentCatState}_${catFrame}.png`;
+    const resolvedPath = resolvedCasing[currentCatState].replace("{frame}", catFrame);
+    catImg.src = resolvedPath;
 }
 
 function startCatLoop() {
@@ -142,7 +226,6 @@ function startCatLoop() {
         catFrame++;
         if (catFrame >= frameCounts[currentCatState]) {
             catFrame = 0;
-            // Loop back to idle once temporary movements conclude
             if (currentCatState !== "Idle") {
                 currentCatState = "Idle";
             }
@@ -151,17 +234,16 @@ function startCatLoop() {
     }, 130);
 }
 
-// Generates a new customer order with Waddle Dee Café transition style
+// Generates and triggers next customer order
 function NewOrder() {
     if (CurrentLife <= 0 || !gameActive) return;
 
-    canClick = true; // Unlock clicks
+    canClick = true; // Allow user interaction
 
-    // --- Dynamic Difficulty Scaling ---
-    // Decrease duration by 250ms for each order completed successfully
-    // Capped at a super-fast 1.5 seconds (1500ms) to keep it humanly playable
+    // --- Dynamic Scaling Difficulty Formula ---
+    // Every order decreases the time by 250ms, with a minimum threshold of 1.5 seconds!
     currentDuration = Math.max(1500, baseDuration - (ordersServed * 250));
-    console.log(`Dynamic Timer - Speed: ${currentDuration}ms (Orders Served: ${ordersServed})`);
+    console.log(`Current Speed: ${currentDuration}ms`);
 
     StartTimer();
 
@@ -170,77 +252,73 @@ function NewOrder() {
 
     const choiceImg = document.getElementById("CustomerChoice");
     if (choiceImg) {
-        // Set image source
-        choiceImg.src = "Food/" + food[num] + ".png";
+        // Resolve path to handle file spelling differences safely
+        getFoodImagePath(ChoosenFood, function(workingPath) {
+            choiceImg.src = workingPath;
 
-        // --- Waddle Dee Café Style Random Transition Math ---
-        // Transitions must take exactly 2/3 of the dynamic total time
-        const revealDurationMs = Math.round((currentDuration * 2) / 3);
-        choiceImg.style.setProperty('--reveal-duration', `${revealDurationMs}ms`);
+            // --- Waddle Dee Café Style Reveal Transition ---
+            // Animation scales dynamically to exactly 2/3 of current time
+            const revealDurationMs = Math.round((currentDuration * 2) / 3);
+            choiceImg.style.setProperty('--reveal-duration', `${revealDurationMs}ms`);
 
-        // Clear existing reveal class triggers
-        const revealClasses = ["reveal-unblur", "reveal-slide-top", "reveal-slide-bottom", "reveal-silhouette"];
-        revealClasses.forEach(cls => choiceImg.classList.remove(cls));
+            // Reset class animations
+            const revealClasses = ["reveal-unblur", "reveal-slide-top", "reveal-slide-bottom", "reveal-silhouette"];
+            revealClasses.forEach(cls => choiceImg.classList.remove(cls));
 
-        // Reflow browser paint cycle to restart animation cleanly
-        void choiceImg.offsetWidth;
+            // Reflow browser paint
+            void choiceImg.offsetWidth;
 
-        // Pick a random fancy reveal animation
-        const randomTransition = revealClasses[Math.floor(Math.random() * revealClasses.length)];
-        choiceImg.classList.add(randomTransition);
+            // Choose random visual reveal pattern
+            const randomTransition = revealClasses[Math.floor(Math.random() * revealClasses.length)];
+            choiceImg.classList.add(randomTransition);
+        });
     }
 
-    setCatState("Pointing"); // Cat points to declare customer wish
+    setCatState("Pointing"); // Cat points to declare order
 }
 
-// Action button click handler
+// Handles ingredient button selections
 function GiveObject() {
     if (CurrentLife <= 0 || !canClick || !gameActive) return;
     
-    canClick = false; // Block spam clicking
-    clearInterval(timerInterval); // Halt current countdown
+    canClick = false; // Block button spamming during outcome presentation
+    clearInterval(timerInterval); // Stop timer countdown
 
     const clickedFood = this.id;
 
     if (clickedFood === ChoosenFood) {
-        // Increment successfully served orders for scaling up difficulty
-        ordersServed++;
-
-        // --- Calculate points based on rapidity (timeLeft) ---
-        // timeLeft goes from 100 to 0. 
-        // Max points: 1000 (at 100% time), Min points: 100
+        // --- Calculate score based on clicking speed ---
         let pointsEarned = Math.round(timeLeft * 10);
-        if (pointsEarned < 100) pointsEarned = 100;
+        if (pointsEarned < 100) pointsEarned = 100; // Guaranteed minimum floor points
 
         currentScore += pointsEarned;
+        ordersServed++;
         UpdateScoreDisplay();
 
-        // Visual point splash effect
+        // Spawn a point splash element
         ShowFloatingPoints(pointsEarned);
 
-        // Feedback text with custom "Speed Up" warning when pace gets hectic
+        // Display success banner. Every 3 orders, tease the player with a Speed-Up alert!
         const resultEl = document.getElementById("Result");
-        if (resultEl) {
-            let feedbackMsg = `Success! +${pointsEarned} pts 🎉`;
-            if (ordersServed > 0 && ordersServed % 3 === 0) {
-                feedbackMsg += `<br><span style="font-size: 1.1rem; color: #ffb703; text-shadow: 0 0 8px rgba(255, 183, 3, 0.6); animation: pulse 0.8s infinite alternate;">SPEED UP! ⚡</span>`;
-            }
-            resultEl.innerHTML = feedbackMsg;
-            resultEl.style.color = "#2ecc71"; // Nice neon green
+        if (ordersServed > 0 && ordersServed % 3 === 0) {
+            resultEl.innerHTML = `SPEED UP ! ⚡ +${pointsEarned} pts`;
+            resultEl.style.color = "#ffb703"; // Alert yellow
+        } else {
+            resultEl.innerHTML = `Success ! +${pointsEarned} pts 🎉`;
+            resultEl.style.color = "#2ecc71"; // Success neon green
         }
 
-        setCatState("Happy"); // Excited reaction
+        setCatState("Happy"); // Delightful cat response
     } else {
         Failed();
     }
 
-    // Settle animation before serving next customer
     if (CurrentLife > 0) {
         setTimeout(NewOrder, 1500);
     }
 }
 
-// Dynamic floating points popup above the customer bubble
+// Floating points popup above the customer bubble
 function ShowFloatingPoints(pts) {
     const bubble = document.getElementById("Customer");
     if (!bubble) return;
@@ -250,13 +328,12 @@ function ShowFloatingPoints(pts) {
     splash.innerHTML = `+${pts}`;
     bubble.appendChild(splash);
 
-    // Remove element after animation completes
     setTimeout(() => {
         splash.remove();
     }, 1000);
 }
 
-// Countdown progress bar controller
+// Controls timer countdown mechanics
 function StartTimer() {
     clearInterval(timerInterval);
     timeLeft = 100;
@@ -278,11 +355,11 @@ function StartTimer() {
         timeLeft -= decrement;
         timerBar.style.width = Math.max(0, timeLeft) + "%";
 
-        // Dynamic warning color thresholds
+        // Warnings colors based on thresholds
         if (timeLeft <= 30) {
-            timerBar.style.backgroundColor = "#ff4d6d"; // Warning neon red
+            timerBar.style.backgroundColor = "#ff4d6d"; // Neon Red
         } else if (timeLeft <= 60) {
-            timerBar.style.backgroundColor = "#ffb703"; // Warn amber yellow
+            timerBar.style.backgroundColor = "#ffb703"; // Amber Yellow
         }
 
         if (timeLeft <= 0) {
@@ -292,20 +369,20 @@ function StartTimer() {
     }, timeStep);
 }
 
-// Timeout handler
+// Timeout event handler
 function TimeOut() {
-    canClick = false; // Restrict clicks
+    canClick = false;
     document.getElementById("Result").innerHTML = "Too slow! ⏰";
-    Failed(); // Count as mistake
+    Failed();
 
     if (CurrentLife > 0) {
         setTimeout(NewOrder, 1500);
     }
 }
 
-// Handles mistimed/wrong clicks and reduces life points
+// Handles wrong ingredient matching or timeout penalties
 function Failed() {
-    document.getElementById("Result").style.color = "#ff4d6d"; // Soft chalk red
+    document.getElementById("Result").style.color = "#ff4d6d"; // Red alert chalk
     
     if (document.getElementById("Result").innerHTML !== "Too slow! ⏰") {
         document.getElementById("Result").innerHTML = "Failed ! ❌";
@@ -313,14 +390,14 @@ function Failed() {
 
     CurrentLife -= 1;
     UpdateHeartsDisplay();
-    setCatState("Idle"); // Resets cat pose
+    setCatState("Idle");
 
     if (CurrentLife <= 0) {
         GameOver();
     }
 }
 
-// Visually update the heart containers inside the red zone
+// Updates heart containers
 function UpdateHeartsDisplay() {
     const heartsContainer = document.getElementById("Hearts");
     if (!heartsContainer) return;
@@ -336,7 +413,6 @@ function UpdateHeartsDisplay() {
     heartsContainer.innerHTML = heartsStr;
 }
 
-// Update score dashboard
 function UpdateScoreDisplay() {
     const scoreVal = document.getElementById("ScoreVal");
     if (scoreVal) {
@@ -345,13 +421,13 @@ function UpdateScoreDisplay() {
 }
 
 function UpdateHighScoreDisplay() {
-    const hsVal = document.getElementById("HighScoreVal");
-    if (hsVal) {
-        hsVal.innerHTML = highScore;
+    const hsLabel = document.getElementById("RecordLabel");
+    if (hsLabel && highScore > 0) {
+        hsLabel.innerHTML = `High Score: ${highScore}`;
     }
 }
 
-// Handles Game Over procedures
+// Triggers game-over sequence
 function GameOver() {
     gameActive = false;
     clearInterval(timerInterval);
@@ -365,22 +441,21 @@ function GameOver() {
 
     setCatState("Idle");
 
-    // Check highscore
+    // Manage highscore record checks
     let isNewRecord = false;
     if (currentScore > highScore) {
         highScore = currentScore;
         localStorage.setItem("julia_high_score", highScore);
-        UpdateHighScoreDisplay();
         isNewRecord = true;
     }
 
-    // Display final scoreboard
+    // Display scoreboard after delay
     setTimeout(function() {
         ShowScoreBoard(isNewRecord);
     }, 1200);
 }
 
-// Display final overlay comparing current score to high score
+// Overlays game statistics
 function ShowScoreBoard(isNewRecord) {
     const endScreen = document.getElementById("EndScreen");
     const finalScoreVal = document.getElementById("FinalScoreVal");
@@ -391,12 +466,10 @@ function ShowScoreBoard(isNewRecord) {
     if (recordLabel) {
         if (isNewRecord) {
             recordLabel.innerHTML = "🎉 NEW HIGH SCORE ! 👑";
-            recordLabel.style.display = "block";
             recordLabel.className = "record-banner pulse-animation";
         } else {
             recordLabel.innerHTML = `High Score: ${highScore}`;
             recordLabel.className = "high-score-label";
-            recordLabel.style.display = "block";
         }
     }
 

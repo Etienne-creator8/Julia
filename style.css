@@ -1,13 +1,18 @@
-/* style-v9.css */
+/* style-v11.css */
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Sarina&display=swap');
 
-body {
+/* UNIVERSAL RESET: Clears default browser margins/paddings to fix the left white gap! */
+* {
     margin: 0;
     padding: 0;
-    width: 100vw;
-    height: 100vh;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
     overflow: hidden;
-    /* High-quality background image (Day.png) with solid pastel fallback */
+    /* Day.png with robust full-screen cover coverage */
     background: url('Day.png') no-repeat center center / cover, linear-gradient(135deg, #fff0f3 0%, #ffe5ec 100%);
     font-family: 'Fredoka', sans-serif;
     display: flex;
@@ -21,7 +26,36 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    box-sizing: border-box;
+    position: relative;
+}
+
+/* Hanging Scoreboard blackboard plaque */
+#ScoreCard {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(30, 30, 30, 0.95);
+    border: 3px solid #f39c12;
+    border-radius: 12px;
+    padding: 8px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #fff;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+}
+
+#ScoreCard .label {
+    font-size: 0.75rem;
+    color: #ffb703;
+    letter-spacing: 1px;
+}
+
+#ScoreCard #ScoreVal {
+    font-size: 1.4rem;
+    color: #fff;
 }
 
 #GameTitle {
@@ -47,7 +81,7 @@ body {
     display: flex;
     flex-direction: row;
     justify-content: center;
-    align-items: flex-end; /* Sitting on the bar counter top */
+    align-items: flex-end;
     gap: 40px;
     flex-grow: 1;
     margin-bottom: -15px; /* Sunk down into the wood counter */
@@ -72,7 +106,7 @@ body {
 }
 
 /* 
-   The Customer Order Box (Decoupled to float higher and not get blocked 
+   The Customer Order Box (Decoupled to float higher and not get blocked \
    by the bar counter or the cat's sunk body).
 */
 #CustomerChoice {
@@ -90,7 +124,7 @@ body {
     padding: 15px;
     box-shadow: 0 10px 25px rgba(255, 182, 193, 0.35);
     position: relative;
-    bottom: 80px; /* Elevated high so it sits beside the cat's face */
+    bottom: 85px; /* Elevated high so it sits beside the cat's face */
     z-index: 2; /* Sits cleanly over all components */
     transform-origin: center bottom;
 }
@@ -174,9 +208,9 @@ body {
     width: 100%;
     /* Layered rich wood panels */
     background: linear-gradient(to bottom, 
-        #a05c31 0px,
-        #8b4c24 14px,
-        #6f3713 14px,
+        #a05c31 0px, 
+        #8b4c24 14px, 
+        #6f3713 14px, 
         #572809 100%
     );
     border-top: 14px solid #d48c55; /* Warm golden-wood edge trim */
@@ -209,10 +243,7 @@ body {
     min-width: 250px;
 }
 
-/* 
-   Timer bar positioned completely above the food buttons without overlapping.
-   Set overflow to visible so our Hearts pill-badge can overlap the left end!
-*/
+/* Timer bar positioned completely above the food buttons without overlapping */
 #TimerBar {
     width: 80%;
     max-width: 900px;
@@ -221,7 +252,7 @@ body {
     border-radius: 30px;
     border: 5px solid #2d2d2d; /* Cute thick cartoon border */
     background-color: #4a4a4a;
-    overflow: visible; /* Change to visible to support the hearts overlay capsule */
+    overflow: hidden;
     position: relative;
     box-shadow: inset 0 4px 6px rgba(0,0,0,0.3);
 }
@@ -236,92 +267,42 @@ body {
 }
 
 /* 
-   Hearts Overlay Capsule - Nested over the Red capsule cap on the left of the TimerBar!
-   Glows red to represent current lives inside the "red zone".
+   Hearts display nested in the left "red zone" of the timer bar.
+   Provides a cozy arcade look overlayed on top of the bar.
 */
 #Hearts {
     position: absolute;
-    left: -15px; /* Placed exactly on top of the left cap red zone */
+    left: 15px;
     top: 50%;
     transform: translateY(-50%);
-    background: linear-gradient(135deg, #ff4d6d 0%, #d90429 100%);
-    border: 4px solid #2d2d2d;
-    border-radius: 20px;
-    padding: 4px 12px;
+    font-size: 1rem;
+    color: #ff4d6d;
+    z-index: 100;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.15rem;
-    color: #fff;
-    z-index: 25;
-    box-shadow: 0 4px 12px rgba(217, 4, 41, 0.6);
-    letter-spacing: 2px;
-    font-weight: bold;
-    user-select: none;
-    animation: heartPulse 2s infinite ease-in-out;
-}
-
-@keyframes heartPulse {
-    0%, 100% { transform: translateY(-50%) scale(1); }
-    50% { transform: translateY(-50%) scale(1.05); }
-}
-
-/* Score Panel styled as a gorgeous chalkboard plaque hanging from the upper right */
-#ScoreCard {
-    position: absolute;
-    top: 20px;
-    right: 25px;
-    background: rgba(30, 30, 30, 0.9); /* Dark charcoal */
-    border: 4px solid #f39c12; /* Golden wood frame */
-    border-radius: 20px;
-    padding: 8px 22px;
-    text-align: center;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.25), inset 0 2px 4px rgba(255, 255, 255, 0.1);
-    z-index: 50;
-    min-width: 110px;
-}
-#ScoreCard .label {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: bold;
-    color: #ff85a1; /* Cute pink subtitle */
+    gap: 3px;
     letter-spacing: 1.5px;
-    margin-bottom: 2px;
-    text-transform: uppercase;
-}
-#ScoreCard #ScoreVal {
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: #fff;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
 }
 
-/* Floating dynamic splash points effect when clicking correctly */
+/* Floating points splash */
 .points-splash {
     position: absolute;
-    top: 5%;
-    left: 65%;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
     font-size: 1.8rem;
     font-weight: bold;
-    color: #2ecc71;
-    text-shadow: 0 0 10px rgba(46, 204, 113, 0.8), 2px 2px 0px #1e4620;
-    animation: splashFloatUp 1.2s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
-    z-index: 99;
+    color: #f1c40f;
+    text-shadow: 0 3px 6px rgba(0,0,0,0.5), 0 0 8px rgba(241, 196, 15, 0.5);
+    z-index: 200;
+    animation: splashUp 1s ease-out forwards;
+    pointer-events: none;
 }
 
-@keyframes splashFloatUp {
-    0% {
-        transform: translateY(40px) scale(0.6) rotate(-10deg);
-        opacity: 0;
-    }
-    30% {
-        transform: translateY(-20px) scale(1.3) rotate(5deg);
-        opacity: 1;
-    }
-    100% {
-        transform: translateY(-80px) scale(1) rotate(0deg);
-        opacity: 0;
-    }
+@keyframes splashUp {
+    0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translate(-50%, -60px) scale(1.1); opacity: 0; }
 }
 
 /* Horizontal alignment for the food ingredient items sitting on the counter shelf */
@@ -378,19 +359,18 @@ body {
 #Watermelon { background-image: url(Food/Watermelon.png); }
 
 
-/* --- POPUP SCREEN BASICS --- */
+/* --- POPUP OVERLAY INTERFACES --- */
 #StartScreen, #EndScreen {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.78);
+    background: rgba(0, 0, 0, 0.75);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    transition: opacity 0.4s ease;
 }
 
 .start-box, .end-box {
@@ -412,9 +392,9 @@ body {
 }
 
 .start-box h2, .end-box h2 {
-    font-family: "Sarina", cursive;
+    font-family: \"Sarina\", cursive;
     color: #ff4d6d;
-    font-size: 2.5rem;
+    font-size: 2.4rem;
     margin-top: 0;
     margin-bottom: 10px;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
@@ -423,63 +403,62 @@ body {
 .start-box p, .end-box p {
     font-family: 'Fredoka', sans-serif;
     color: #594a4e;
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     line-height: 1.5;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
 }
 
-/* Score display panel inside the final scoreboard overlay */
+/* Score Summary Blackboard in End Box */
 .score-summary {
-    background: rgba(255, 255, 255, 0.6);
-    border-radius: 25px;
-    padding: 22px;
-    margin-bottom: 30px;
-    border: 3.5px solid #ffccd5;
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
-}
-.score-summary .score-title {
-    font-size: 1rem;
-    color: #ff758f;
-    font-weight: bold;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-.score-summary #FinalScoreVal {
-    font-size: 3.4rem;
-    font-weight: 800;
-    color: #c9184a;
-    margin: 5px 0;
-    text-shadow: 1px 1px 1px rgba(255,255,255,0.8);
+    background: rgba(30, 30, 30, 0.95);
+    border: 3px solid #f39c12;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
 }
 
-/* Distinct high score and milestone banner layouts */
-.record-banner {
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: #2ecc71;
-    text-shadow: 0 0 8px rgba(46,204,113,0.3);
-    margin-top: 8px;
+.score-summary .score-title {
+    color: #ffb703;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
-.high-score-label {
-    font-size: 1.15rem;
+
+#FinalScoreVal {
+    color: #fff;
+    font-size: 3rem;
     font-weight: bold;
-    color: #7f8c8d;
-    margin-top: 8px;
+    margin: 5px 0;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.high-score-label {
+    color: #bdc3c7;
+    font-size: 1rem;
+}
+
+.record-banner {
+    color: #f1c40f;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(241, 196, 15, 0.5);
 }
 
 .pulse-animation {
-    animation: bannerPulse 1.5s infinite ease-in-out;
+    animation: pulseGently 1.5s infinite ease-in-out;
 }
-@keyframes bannerPulse {
+
+@keyframes pulseGently {
     0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.06); }
+    50% { transform: scale(1.08); }
 }
 
 #StartBtn, #PlayAgainBtn {
     font-family: 'Fredoka', sans-serif;
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     font-weight: 700;
-    padding: 14px 40px;
+    padding: 12px 35px;
     border: none;
     border-radius: 25px;
     background: linear-gradient(135deg, #ff4d6d 0%, #ff758f 100%);
@@ -496,10 +475,4 @@ body {
 
 #StartBtn:active, #PlayAgainBtn:active {
     transform: scale(0.96);
-}
-
-/* Order card gently floats */
-@keyframes floatGently {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-8px) rotate(1.5deg); }
 }
